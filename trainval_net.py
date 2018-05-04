@@ -58,7 +58,7 @@ def parse_args():
                       default=10000, type=int)
 
   parser.add_argument('--save_dir', dest='save_dir',
-                      help='directory to save models', default="/srv/share/jyang375/models",
+                      help='directory to save models', default="/SSD/tantara/models",
                       nargs=argparse.REMAINDER)
   parser.add_argument('--nw', dest='num_workers',
                       help='number of worker to load data',
@@ -68,7 +68,7 @@ def parse_args():
                       action='store_true')
   parser.add_argument('--ls', dest='large_scale',
                       help='whether use large imag scale',
-                      action='store_true')                      
+                      action='store_true')
   parser.add_argument('--mGPUs', dest='mGPUs',
                       help='whether use multiple GPUs',
                       action='store_true')
@@ -170,8 +170,8 @@ if __name__ == '__main__':
       args.imdbval_name = "coco_2014_minival"
       args.set_cfgs = ['ANCHOR_SCALES', '[4, 8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '50']
   elif args.dataset == "imagenet":
-      args.imdb_name = "imagenet_train"
-      args.imdbval_name = "imagenet_val"
+      args.imdb_name = "imagenet_DET_train_30classes+imagenet_VID_train_15frames"
+      args.imdbval_name = "imagenet_VID_train_15frames"
       args.set_cfgs = ['ANCHOR_SCALES', '[4, 8, 16, 32]', 'ANCHOR_RATIOS', '[0.5,1,2]', 'MAX_NUM_GT_BOXES', '30']
   elif args.dataset == "vg":
       # train sizes: train, smalltrain, minitrain
@@ -310,6 +310,22 @@ if __name__ == '__main__':
     data_iter = iter(dataloader)
     for step in range(iters_per_epoch):
       data = next(data_iter)
+
+      # if args.dataset == "imagenet":
+      #     data0 = data[0]['data']
+      #     data1 = _im_info
+      #     data2 = data[0]['gt_boxes']
+      #     data3 = data[0]['num_boxes']
+      #
+      #     im_data.data.resize_(data0.size()).copy_(data0)
+      #     im_info.data.resize_(data1.size()).copy_(data1)
+      #     gt_boxes.data.resize_(data2.size()).copy_(data2)
+      #     num_boxes.data.resize_(data3.size()).copy_(data3)
+      # else:
+      #     im_data.data.resize_(data[0].size()).copy_(data[0])
+      #     im_info.data.resize_(data[1].size()).copy_(data[1])
+      #     gt_boxes.data.resize_(data[2].size()).copy_(data[2])
+      #     num_boxes.data.resize_(data[3].size()).copy_(data[3])
       im_data.data.resize_(data[0].size()).copy_(data[0])
       im_info.data.resize_(data[1].size()).copy_(data[1])
       gt_boxes.data.resize_(data[2].size()).copy_(data[2])

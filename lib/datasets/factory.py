@@ -51,13 +51,12 @@ for version in ['150-50-20', '150-50-50', '500-150-80', '750-250-150', '1750-700
     for split in ['minitrain', 'smalltrain', 'train', 'minival', 'smallval', 'val', 'test']:
         name = 'vg_{}_{}'.format(version,split)
         __sets[name] = (lambda split=split, version=version: vg(version, split))
-        
+
 # set up image net.
-for split in ['train', 'val', 'val1', 'val2', 'test']:
+for split in ['DET_train_30classes', 'VID_train_15frames', 'VID_val_frames', 'VID_val_videos']:
     name = 'imagenet_{}'.format(split)
-    devkit_path = 'data/imagenet/ILSVRC/devkit'
-    data_path = 'data/imagenet/ILSVRC'
-    __sets[name] = (lambda split=split, devkit_path=devkit_path, data_path=data_path: imagenet(split,devkit_path,data_path))
+    data_path = 'data/ILSVRC2015'
+    __sets[name] = (lambda split=split, data_path=data_path: imagenet(split,data_path))
 
 def get_imdb(name):
   """Get an imdb (image database) by name."""

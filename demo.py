@@ -61,7 +61,7 @@ def parse_args():
                       nargs=argparse.REMAINDER)
   parser.add_argument('--load_dir', dest='load_dir',
                       help='directory to load models',
-                      default="/srv/share/jyang375/models")
+                      default="/SSD/tantara/models")
   parser.add_argument('--image_dir', dest='image_dir',
                       help='directory to load images for demo',
                       default="images")
@@ -164,22 +164,34 @@ if __name__ == '__main__':
   load_name = os.path.join(input_dir,
     'faster_rcnn_{}_{}_{}.pth'.format(args.checksession, args.checkepoch, args.checkpoint))
 
-  pascal_classes = np.asarray(['__background__',
+  # pascal
+  classes = np.asarray(['__background__',
                        'aeroplane', 'bicycle', 'bird', 'boat',
                        'bottle', 'bus', 'car', 'cat', 'chair',
                        'cow', 'diningtable', 'dog', 'horse',
                        'motorbike', 'person', 'pottedplant',
                        'sheep', 'sofa', 'train', 'tvmonitor'])
 
+  # imagenet
+  classes = np.asarray(['__background__',  # always index 0
+                        'airplane', 'antelope', 'bear', 'bicycle',
+                        'bird', 'bus', 'car', 'cattle',
+                        'dog', 'domestic_cat', 'elephant', 'fox',
+                        'giant_panda', 'hamster', 'horse', 'lion',
+                        'lizard', 'monkey', 'motorcycle', 'rabbit',
+                        'red_panda', 'sheep', 'snake', 'squirrel',
+                        'tiger', 'train', 'turtle', 'watercraft',
+                        'whale', 'zebra'])
+
   # initilize the network here.
   if args.net == 'vgg16':
-    fasterRCNN = vgg16(pascal_classes, pretrained=False, class_agnostic=args.class_agnostic)
+    fasterRCNN = vgg16(classes, pretrained=False, class_agnostic=args.class_agnostic)
   elif args.net == 'res101':
-    fasterRCNN = resnet(pascal_classes, 101, pretrained=False, class_agnostic=args.class_agnostic)
+    fasterRCNN = resnet(classes, 101, pretrained=False, class_agnostic=args.class_agnostic)
   elif args.net == 'res50':
-    fasterRCNN = resnet(pascal_classes, 50, pretrained=False, class_agnostic=args.class_agnostic)
+    fasterRCNN = resnet(classes, 50, pretrained=False, class_agnostic=args.class_agnostic)
   elif args.net == 'res152':
-    fasterRCNN = resnet(pascal_classes, 152, pretrained=False, class_agnostic=args.class_agnostic)
+    fasterRCNN = resnet(classes, 152, pretrained=False, class_agnostic=args.class_agnostic)
   else:
     print("network is not defined")
     pdb.set_trace()
@@ -314,7 +326,7 @@ if __name__ == '__main__':
                 else:
                     box_deltas = box_deltas.view(-1, 4) * torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_STDS) \
                                + torch.FloatTensor(cfg.TRAIN.BBOX_NORMALIZE_MEANS)
-                box_deltas = box_deltas.view(1, -1, 4 * len(pascal_classes))
+                box_deltas = box_deltas.view(1, -1, 4 * len(classes))
 
           pred_boxes = bbox_transform_inv(boxes, box_deltas, 1)
           pred_boxes = clip_boxes(pred_boxes, im_info.data, 1)
@@ -331,7 +343,7 @@ if __name__ == '__main__':
       misc_tic = time.time()
       if vis:
           im2show = np.copy(im)
-      for j in xrange(1, len(pascal_classes)):
+      for j in xrange(1, len(classes)):
           inds = torch.nonzero(scores[:,j]>thresh).view(-1)
           # if there is det
           if inds.numel() > 0:
@@ -348,7 +360,7 @@ if __name__ == '__main__':
             keep = nms(cls_dets, cfg.TEST.NMS, force_cpu=not cfg.USE_GPU_NMS)
             cls_dets = cls_dets[keep.view(-1).long()]
             if vis:
-              im2show = vis_detections(im2show, pascal_classes[j], cls_dets.cpu().numpy(), 0.5)
+              im2show = vis_detections(im2show, classes[j], cls_dets.cpu().numpy(), 0.5)
 
       misc_toc = time.time()
       nms_time = misc_toc - misc_tic

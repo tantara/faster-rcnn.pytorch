@@ -1,3 +1,14 @@
 data/*
 *.pyc
 *~
+
+core
+.DS_Store
+
+*.swo
+*.swp
+
+output
+
+lib/**/*.o
+lib/**/*.so

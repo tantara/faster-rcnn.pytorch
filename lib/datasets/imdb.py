@@ -115,16 +115,20 @@ class imdb(object):
     num_images = self.num_images
     widths = self._get_widths()
     for i in range(num_images):
-      boxes = self.roidb[i]['boxes'].copy()
+      roi_rec = self.roidb[i]
+      boxes = roi_rec['boxes'].copy()
       oldx1 = boxes[:, 0].copy()
       oldx2 = boxes[:, 2].copy()
-      boxes[:, 0] = widths[i] - oldx2 - 1
-      boxes[:, 2] = widths[i] - oldx1 - 1
+      if not 'width' in roi_rec:
+        boxes[:, 0] = widths[i] - oldx2 - 1
+        boxes[:, 2] = widths[i] - oldx1 - 1
+      else:
+        boxes[:, 0] = roi_rec['width'] - oldx2 - 1
+        boxes[:, 2] = roi_rec['width'] - oldx1 - 1
       assert (boxes[:, 2] >= boxes[:, 0]).all()
-      entry = {'boxes': boxes,
-               'gt_overlaps': self.roidb[i]['gt_overlaps'],
-               'gt_classes': self.roidb[i]['gt_classes'],
-               'flipped': True}
+      entry = roi_rec.copy()
+      entry['boxes'] = boxes
+      entry['flipped'] = True
       self.roidb.append(entry)
     self._image_index = self._image_index * 2
 
