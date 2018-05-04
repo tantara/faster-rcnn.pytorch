@@ -3,6 +3,7 @@ import torch
 import torchvision as tv
 import torch.utils.data as data
 
+
 class TestLoader(data.DataLoader):
     def __init__(self, roidb, batch_size=1, shuffle=False, num_workers=1, pin_memory=False):
         # save parameters as properties
@@ -56,8 +57,8 @@ class TestLoader(data.DataLoader):
             elif self.cur_frameid - self.key_frameid == self.cfg.TEST.KEY_FRAME_INTERVAL:
                 self.key_frameid = self.cur_frameid
             return self.im_info, self.key_frame_flag, mx.io.DataBatch(data=self.data, label=self.label,
-                                   pad=self.getpad(), index=self.getindex(),
-                                   provide_data=self.provide_data, provide_label=self.provide_label)
+                                                                      pad=self.getpad(), index=self.getindex(),
+                                                                      provide_data=self.provide_data, provide_label=self.provide_label)
         else:
             raise StopIteration
 
@@ -75,7 +76,7 @@ class TestLoader(data.DataLoader):
         cur_roidb['image'] = cur_roidb['pattern'] % self.cur_frameid
         self.cur_seg_len = cur_roidb['frame_seg_len']
         data, label, im_info = get_rpn_testbatch([cur_roidb], self.cfg)
-        if self.key_frameid == self.cur_frameid: # key frame
+        if self.key_frameid == self.cur_frameid:  # key frame
             self.data_key = data[0]['data'].copy()
             if self.key_frameid == 0:
                 self.key_frame_flag = 0
@@ -86,6 +87,7 @@ class TestLoader(data.DataLoader):
         extend_data = [{'data': data[0]['data'],
                         'im_info': data[0]['im_info'],
                         'data_key': self.data_key,
-                        'feat_key': np.zeros((1,self.cfg.network.APN_FEAT_DIM,1,1))}]
-        self.data = [[mx.nd.array(extend_data[i][name]) for name in self.data_name] for i in range(len(data))]
+                        'feat_key': np.zeros((1, self.cfg.network.APN_FEAT_DIM, 1, 1))}]
+        self.data = [[mx.nd.array(extend_data[i][name])
+                      for name in self.data_name] for i in range(len(data))]
         self.im_info = im_info

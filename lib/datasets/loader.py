@@ -1,5 +1,4 @@
 # --------------------------------------------------------
-ader
 # Deep Feature Flow
 # Copyright (c) 2016 by Contributors
 # Copyright (c) 2017 Microsoft
@@ -15,6 +14,7 @@ from config.config import config
 from utils.image import tensor_vstack
 from rpn.rpn import get_rpn_testbatch, get_rpn_pair_batch, assign_anchor
 from rcnn import get_rcnn_testbatch, get_rcnn_batch
+
 
 class TestLoader(mx.io.DataIter):
     def __init__(self, roidb, config, batch_size=1, shuffle=False,
@@ -90,8 +90,8 @@ class TestLoader(mx.io.DataIter):
             elif self.cur_frameid - self.key_frameid == self.cfg.TEST.KEY_FRAME_INTERVAL:
                 self.key_frameid = self.cur_frameid
             return self.im_info, self.key_frame_flag, mx.io.DataBatch(data=self.data, label=self.label,
-                                   pad=self.getpad(), index=self.getindex(),
-                                   provide_data=self.provide_data, provide_label=self.provide_label)
+                                                                      pad=self.getpad(), index=self.getindex(),
+                                                                      provide_data=self.provide_data, provide_label=self.provide_label)
         else:
             raise StopIteration
 
@@ -109,7 +109,7 @@ class TestLoader(mx.io.DataIter):
         cur_roidb['image'] = cur_roidb['pattern'] % self.cur_frameid
         self.cur_seg_len = cur_roidb['frame_seg_len']
         data, label, im_info = get_rpn_testbatch([cur_roidb], self.cfg)
-        if self.key_frameid == self.cur_frameid: # key frame
+        if self.key_frameid == self.cur_frameid:  # key frame
             self.data_key = data[0]['data'].copy()
             if self.key_frameid == 0:
                 self.key_frame_flag = 0
@@ -120,9 +120,11 @@ class TestLoader(mx.io.DataIter):
         extend_data = [{'data': data[0]['data'],
                         'im_info': data[0]['im_info'],
                         'data_key': self.data_key,
-                        'feat_key': np.zeros((1,self.cfg.network.DFF_FEAT_DIM,1,1))}]
-        self.data = [[mx.nd.array(extend_data[i][name]) for name in self.data_name] for i in xrange(len(data))]
+                        'feat_key': np.zeros((1, self.cfg.network.DFF_FEAT_DIM, 1, 1))}]
+        self.data = [[mx.nd.array(extend_data[i][name])
+                      for name in self.data_name] for i in xrange(len(data))]
         self.im_info = im_info
+
 
 class AnchorLoader(mx.io.DataIter):
 
@@ -171,7 +173,8 @@ class AnchorLoader(mx.io.DataIter):
 
         # decide data and label names
         if config.TRAIN.END2END:
-            self.data_name = ['data', 'data_ref', 'eq_flag', 'im_info', 'gt_boxes']
+            self.data_name = ['data', 'data_ref',
+                              'eq_flag', 'im_info', 'gt_boxes']
         else:
             self.data_name = ['data']
         self.label_name = ['label', 'bbox_target', 'bbox_weight']
@@ -212,7 +215,8 @@ class AnchorLoader(mx.io.DataIter):
                 vert = np.logical_not(horz)
                 horz_inds = np.where(horz)[0]
                 vert_inds = np.where(vert)[0]
-                inds = np.hstack((np.random.permutation(horz_inds), np.random.permutation(vert_inds)))
+                inds = np.hstack((np.random.permutation(
+                    horz_inds), np.random.permutation(vert_inds)))
                 extra = inds.shape[0] % self.batch_size
                 inds_ = np.reshape(inds[:-extra], (-1, self.batch_size))
                 row_perm = np.random.permutation(np.arange(inds_.shape[0]))
@@ -257,7 +261,8 @@ class AnchorLoader(mx.io.DataIter):
                               self.feat_stride, self.anchor_scales, self.anchor_ratios, self.allowed_border,
                               self.normalize_target, self.bbox_mean, self.bbox_std)
         label = [label[k] for k in self.label_name]
-        label_shape = [(k, tuple([input_batch_size] + list(v.shape[1:]))) for k, v in zip(self.label_name, label)]
+        label_shape = [(k, tuple([input_batch_size] + list(v.shape[1:])))
+                       for k, v in zip(self.label_name, label)]
         return max_data_shape, label_shape
 
     def get_batch(self):
@@ -314,7 +319,8 @@ class AnchorLoader(mx.io.DataIter):
         all_label = dict()
         for key in self.label_name:
             pad = -1 if key == 'label' else 0
-            all_label[key] = tensor_vstack([batch[key] for batch in new_label_list], pad=pad)
+            all_label[key] = tensor_vstack(
+                [batch[key] for batch in new_label_list], pad=pad)
 
         self.data = [mx.nd.array(all_data[key]) for key in self.data_name]
         self.label = [mx.nd.array(all_label[key]) for key in self.label_name]
@@ -337,8 +343,10 @@ class AnchorLoader(mx.io.DataIter):
             rst.append(self.parfetch(iroidb))
         all_data = [_['data'] for _ in rst]
         all_label = [_['label'] for _ in rst]
-        self.data = [[mx.nd.array(data[key]) for key in self.data_name] for data in all_data]
-        self.label = [[mx.nd.array(label[key]) for key in self.label_name] for label in all_label]
+        self.data = [[mx.nd.array(data[key])
+                      for key in self.data_name] for data in all_data]
+        self.label = [[mx.nd.array(label[key])
+                       for key in self.label_name] for label in all_label]
 
     def parfetch(self, iroidb):
         # get testing data for multigpu
